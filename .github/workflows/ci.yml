@@ -28,7 +28,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.CHARTS_REPO_TOKEN }}
         run: |
-          git clone https://x-access-token:${TOKEN}@github.com/${{ github.repository_owner }}/helm-charts.git
+          git clone https://x-access-token:${TOKEN}@github.com/${{ github.repository_owner }}helm-charts.git
           cd helm-charts
           sed -i "s/^  tag:.*/  tag: \"${VERSION}\"/" charts/lab-argo/values.yaml
           sed -i "s/^version:.*/version: ${VERSION}/" charts/lab-argo/Chart.yaml
