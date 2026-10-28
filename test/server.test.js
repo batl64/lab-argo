@@ -6,7 +6,6 @@ const { createServer } = require("../server");
 let server;
 let port;
 
-// Сирий запит через http.request, щоб шлях не нормалізувався (потрібно для тесту traversal)
 function request(method, path, body) {
   return new Promise((resolve, reject) => {
     const req = http.request(
@@ -74,7 +73,7 @@ describe("статичні файли", () => {
 
   test("index.html містить скрипт калькулятора (без зовнішніх файлів)", async () => {
     const res = await request("GET", "/");
-    assert.match(res.body, /<script>[\s\S]*fetch\('\/api\/calc'/);
+    assert.match(res.body, /<script>[\s\S]*fetch\(["']\/api\/calc["']/);
     assert.doesNotMatch(res.body, /<script[^>]+src=/);
   });
 
