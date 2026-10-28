@@ -30,8 +30,8 @@ jobs:
         run: |
           git clone https://x-access-token:${TOKEN}@github.com/${{ github.repository_owner }}helm-charts.git
           cd helm-charts
-          sed -i "s/^  tag:.*/  tag: \"${VERSION}\"/" charts/lab-argo/values.yaml
-          sed -i "s/^version:.*/version: ${VERSION}/" charts/lab-argo/Chart.yaml
+          sed -i "s/^  tag:.*/  tag: \"${VERSION}\"/" chart/lab-argo/values.yaml
+          sed -i "s/^version:.*/version: ${VERSION}/" chart/lab-argo/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" charts/lab-argo/Chart.yaml
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
