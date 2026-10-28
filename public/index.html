@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Калькулятор</title>
+    <style>
+      :root {
+        --bg: #e9ecef;
+        --body: #1f3a3d;
+        --screen: #d8e6c8;
+        --ink: #14261f;
+        --key: #f4f1ea;
+        --key-ink: #1f3a3d;
+        --op: #3d6b6e;
+        --op-ink: #fff;
+        --accent: #e0a526;
+        --danger: #b8503f;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14181a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        font-family: ui-rounded, "Segoe UI", system-ui, sans-serif;
+      }
+      .calc {
+        width: min(100%, 360px);
+        background: var(--body);
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+      }
+      .screen {
+        background: var(--screen);
+        color: var(--ink);
+        border-radius: 12px;
+        padding: 12px 16px;
+        min-height: 112px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        text-align: right;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+      }
+      .history {
+        font-size: 14px;
+        opacity: 0.6;
+        min-height: 20px;
+        word-break: break-all;
+      }
+      .expr {
+        font-family: ui-monospace, "SF Mono", Consolas, monospace;
+        font-size: 32px;
+        line-height: 1.2;
+        word-break: break-all;
+      }
+      .expr.error {
+        color: var(--danger);
+        font-size: 18px;
+      }
+      .keys {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 16px;
+      }
+      button {
+        font: inherit;
+        font-size: 22px;
+        font-weight: 600;
+        height: 58px;
+        border: 0;
+        border-radius: 14px;
+        background: var(--key);
+        color: var(--key-ink);
+        cursor: pointer;
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.28);
+        transition:
+          transform 0.06s,
+          box-shadow 0.06s;
+      }
+      button:active {
+        transform: translateY(3px);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0.28);
+      }
+      button:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+      }
+      button.op {
+        background: var(--op);
+        color: var(--op-ink);
+      }
+      button.clear {
+        background: var(--danger);
+        color: #fff;
+      }
+      button.eq {
+        background: var(--accent);
+        color: #231a00;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        button {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="calc" aria-label="Калькулятор">
+      <div class="screen" aria-live="polite">
+        <div class="history" id="history"></div>
+        <div class="expr" id="expr">0</div>
+      </div>
+      <div class="keys" id="keys">
+        <button class="clear" data-k="C">C</button>
+        <button class="op" data-k="(">(</button>
+        <button class="op" data-k=")">)</button>
+        <button class="op" data-k="/">÷</button>
+        <button data-k="7">7</button><button data-k="8">8</button
+        ><button data-k="9">9</button>
+        <button class="op" data-k="*">×</button>
+        <button data-k="4">4</button><button data-k="5">5</button
+        ><button data-k="6">6</button>
+        <button class="op" data-k="-">−</button>
+        <button data-k="1">1</button><button data-k="2">2</button
+        ><button data-k="3">3</button>
+        <button class="op" data-k="+">+</button>
+        <button data-k="0">0</button><button data-k=".">.</button>
+        <button class="op" data-k="BS" aria-label="Стерти">⌫</button>
+        <button class="eq" data-k="=">=</button>
+      </div>
+    </main>
+    <script>
+      const exprEl = document.getElementById("expr");
+      const histEl = document.getElementById("history");
+      let expr = "";
+      let justEvaluated = false;
+
+      function render(err) {
+        exprEl.classList.toggle("error", !!err);
+        exprEl.textContent =
+          err || (expr || "0").replace(/\*/g, "×").replace(/\//g, "÷");
+      }
+
+      async function calculate() {
+        if (!expr) return;
+        try {
+          const r = await fetch("/api/calc", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ expression: expr }),
+          });
+          const data = await r.json();
+          if (!r.ok) throw new Error(data.error);
+          histEl.textContent = exprEl.textContent + " =";
+          expr = String(data.result);
+          justEvaluated = true;
+          render();
+        } catch (e) {
+          render(e.message || "Помилка");
+          expr = "";
+        }
+      }
+
+      function press(k) {
+        if (k === "C") {
+          expr = "";
+          histEl.textContent = "";
+          justEvaluated = false;
+          return render();
+        }
+        if (k === "BS") {
+          expr = expr.slice(0, -1);
+          return render();
+        }
+        if (k === "=") return calculate();
+        // після результату цифра починає новий вираз, оператор — продовжує
+        if (justEvaluated && /[\d.(]/.test(k)) expr = "";
+        justEvaluated = false;
+        expr += k;
+        render();
+      }
+
+      document.getElementById("keys").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (b) press(b.dataset.k);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (/^[0-9+\-*/().%^]$/.test(e.key)) press(e.key);
+        else if (e.key === ",") press(".");
+        else if (e.key === "Enter" || e.key === "=") {
+          e.preventDefault();
+          press("=");
+        } else if (e.key === "Backspace") press("BS");
+        else if (e.key === "Escape") press("C");
+      });
+    </script>
+  </body>
+</html>

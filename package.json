@@ -1,0 +1,22 @@
+{
+  "name": "node-calculator",
+  "version": "1.1.1",
+  "description": "Веб-калькулятор на Node.js без залежностей у рантаймі",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "check": "npm run lint && npm test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "eslint-plugin-html": "^8.1.0"
+  }
+}
